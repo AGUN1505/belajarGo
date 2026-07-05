@@ -15,4 +15,5 @@ func main() {
 	fmt.Println(namaDepan + " " + namaBelakang)
 	fmt.Println("Umur:", umur)
 	fmt.Println("Nilai pi:", pi)
+	fmt.Println("ini coba")
 }
