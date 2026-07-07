@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Go Interaktif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .code-editor {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-teal-400">🐹 Belajar Go Interaktif</h1>
+        <span class="text-xs bg-gray-700 px-2.5 py-1 rounded text-gray-300">Go 1.26.4</span>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <!-- Sidebar: Lessons -->
+        <section class="w-full md:w-80 bg-gray-800 border-r border-gray-700 flex flex-col">
+            <div class="p-4 border-b border-gray-700">
+                <h2 class="font-semibold text-gray-300">Daftar Modul</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2 space-y-1" id="lesson-list">
+                <!-- Injected by JS -->
+            </div>
+        </section>
+
+        <!-- Center: Lesson Detail & Code Editor -->
+        <section class="flex-1 flex flex-col p-4 space-y-4 overflow-y-auto">
+            <!-- Lesson Explanation -->
+            <div class="bg-gray-800 p-6 rounded-lg border border-gray-700" id="lesson-detail">
+                <!-- Injected by JS -->
+            </div>
+
+            <!-- Code Editor & Console -->
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Editor -->
+                <div class="bg-gray-800 rounded-lg border border-gray-700 flex flex-col overflow-hidden">
+                    <div class="bg-gray-850 px-4 py-2 border-b border-gray-700 flex justify-between items-center">
+                        <span class="text-xs font-semibold text-gray-400">main.go</span>
+                        <button id="btn-run" class="bg-teal-500 hover:bg-teal-600 text-gray-950 font-semibold px-4 py-1 rounded text-sm transition">
+                            Jalankan
+                        </button>
+                    </div>
+                    <textarea id="code-area" class="flex-1 p-4 bg-gray-950 text-emerald-400 code-editor focus:outline-none resize-none min-h-[300px]"></textarea>
+                </div>
+
+                <!-- Console Output -->
+                <div class="bg-gray-800 rounded-lg border border-gray-700 flex flex-col overflow-hidden">
+                    <div class="bg-gray-850 px-4 py-2 border-b border-gray-700">
+                        <span class="text-xs font-semibold text-gray-400">Output Konsol</span>
+                    </div>
+                    <pre id="output-area" class="flex-1 p-4 bg-black text-gray-300 code-editor overflow-auto whitespace-pre-wrap min-h-[300px]"></pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const lessons = [
+            {
+                id: "hello",
+                title: "1. Hello World",
+                desc: `Selamat datang di Go! Program paling dasar di Go selalu diawali dengan <code>package main</code>. Fungsi <code>main()</code> adalah titik masuk utama (entry point) dari aplikasi Anda. Gunakan fungsi dari package <code>fmt</code> untuk mencetak teks ke layar.`,
+                code: `package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Halo Dunia!")
+}`
+            },
+            {
+                id: "variables",
+                title: "2. Variabel & Tipe Data",
+                desc: `Go adalah bahasa dengan tipe data statis (statically typed). Anda bisa mendeklarasikan variabel menggunakan kata kunci <code>var</code>, menentukan tipenya secara eksplisit, atau menggunakan operator singkat <code>:=</code> (type inference) di dalam fungsi.`,
+                code: `package main
+
+import "fmt"
+
+func main() {
+    var nama string = "Budi"
+    umur := 20 // Tipe otomatis int
+    
+    fmt.Printf("Nama: %s, Umur: %d\\n", nama, umur)
+}`
+            },
+            {
+                id: "conditionals",
+                title: "3. Percabangan (If/Else)",
+                desc: `Percabangan di Go menggunakan <code>if</code>, <code>else if</code>, dan <code>else</code>. Tidak perlu menggunakan tanda kurung <code>()</code> untuk kondisi, namun kurung kurawal <code>{}</code> wajib ditulis.`,
+                code: `package main
+
+import "fmt"
+
+func main() {
+    nilai := 80
+    
+    if nilai >= 80 {
+        fmt.Println("Lulus dengan sangat baik")
+    } else if nilai >= 60 {
+        fmt.Println("Lulus")
+    } else {
+        fmt.Println("Tidak lulus")
+    }
+}`
+            },
+            {
+                id: "loops",
+                title: "4. Perulangan (For)",
+                desc: `Go hanya memiliki satu kata kunci untuk perulangan, yaitu <code>for</code>. Struktur <code>for</code> standar terdiri dari: inisialisasi, kondisi, dan post-statement. Anda juga bisa menggunakannya seperti <code>while</code> di bahasa lain dengan hanya memberikan kondisi.`,
+                code: `package main
+
+import "fmt"
+
+func main() {
+    // For standar
+    for i := 1; i <= 3; i++ {
+        fmt.Println("Iterasi ke-", i)
+    }
+
+    // For mirip while
+    count := 1
+    for count <= 2 {
+        fmt.Println("Count:", count)
+        count++
+    }
+}`
+            },
+            {
+                id: "functions",
+                title: "5. Fungsi",
+                desc: `Fungsi dideklarasikan menggunakan kata kunci <code>func</code>. Go mendukung fungsi yang mengembalikan lebih dari satu nilai (multiple return values), yang sangat berguna untuk penanganan error.`,
+                code: `package main
+
+import "fmt"
+
+func bagi(a, b float64) (float64, string) {
+    if b == 0 {
+        return 0, "Error: pembagian dengan nol"
+    }
+    return a / b, ""
+}
+
+func main() {
+    hasil, err := bagi(10, 2)
+    fmt.Println("Hasil:", hasil, "Error:", err)
+    
+    _, err2 := bagi(10, 0)
+    fmt.Println("Error kedua:", err2)
+}`
+            },
+            {
+                id: "pointers",
+                title: "6. Pointer",
+                desc: `Pointer menyimpan alamat memori dari suatu nilai. Gunakan operator <code>&</code> untuk mendapatkan alamat memori dari sebuah variabel, dan operator <code>*</code> untuk melakukan dereferensi (mengakses nilai di alamat tersebut).`,
+                code: `package main
+
+import "fmt"
+
+func ubahNilai(val *int) {
+    *val = 100 // Mengubah nilai asli melalui pointer
+}
+
+func main() {
+    angka := 10
+    fmt.Println("Sebelum:", angka)
+    
+    ubahNilai(&angka)
+    fmt.Println("Sesudah:", angka)
+}`
+            },
+            {
+                id: "structs",
+                title: "7. Struct & Method",
+                desc: `Go tidak memiliki class, tetapi menggunakan <code>struct</code> untuk mengelompokkan data (fields). Anda dapat menambahkan perilaku (behavior) ke struct dengan mendefinisikan <code>method</code> yang memiliki receiver parameter.`,
+                code: `package main
+
+import "fmt"
+
+type Siswa struct {
+    Nama string
+    Umur int
+}
+
+// Method dengan receiver pointer
+func (s *Siswa) UlangTahun() {
+    s.Umur++
+}
+
+func main() {
+    s1 := Siswa{Nama: "Andi", Umur: 17}
+    s1.UlangTahun()
+    fmt.Printf("%s sekarang berumur %d tahun\\n", s1.Nama, s1.Umur)
+}`
+            },
+            {
+                id: "interfaces",
+                title: "8. Interface",
+                desc: `Interface adalah tipe data yang mendefinisikan kumpulan method signature. Di Go, implementasi interface bersifat implisit (tidak perlu keyword <code>implements</code>). Jika sebuah tipe memiliki semua method yang didefinisikan oleh interface tersebut, maka tipe tersebut secara otomatis mengimplementasikannya.`,
+                code: `package main
+
+import "fmt"
+
+type Bersuara interface {
+    Suara() string
+}
+
+type Kucing struct{}
+func (k Kucing) Suara() string { return "Meong" }
+
+type Anjing struct{}
+func (a Anjing) Suara() string { return "Guk" }
+
+func cetakSuara(b Bersuara) {
+    fmt.Println(b.Suara())
+}
+
+func main() {
+    cetakSuara(Kucing{})
+    cetakSuara(Anjing{})
+}`
+            },
+            {
+                id: "goroutines",
+                title: "9. Goroutine & Channel",
+                desc: `Goroutine adalah thread ringan yang dikelola oleh Go runtime. Gunakan keyword <code>go</code> sebelum memanggil fungsi untuk menjalankannya secara asynchronous. Gunakan <code>channel</code> untuk mengirim dan menerima data antar goroutine dengan aman.`,
+                code: `package main
+
+import (
+    "fmt"
+    "time"
+)
+
+func kirimPesan(ch chan string) {
+    time.Sleep(100 * time.Millisecond)
+    ch <- "Pesan dikirim dari goroutine!"
+}
+
+func main() {
+    ch := make(chan string)
+    go kirimPesan(ch)
+    
+    fmt.Println("Menunggu pesan...")
+    pesan := <-ch
+    fmt.Println("Diterima:", pesan)
+}`
+            },
+            {
+                id: "defer_panic_recover",
+                title: "10. Defer, Panic & Recover",
+                desc: `<code>defer</code> menunda eksekusi fungsi hingga fungsi sekitarnya selesai. <code>panic</code> menghentikan aliran kontrol normal program (seperti exception). <code>recover</code> digunakan untuk menangkap panic dan memulihkan jalannya aplikasi agar tidak langsung crash.`,
+                code: `package main
+
+import "fmt"
+
+func amankanAplikasi() {
+    if r := recover(); r != nil {
+        fmt.Println("Aplikasi pulih dari panic:", r)
+    }
+}
+
+func prosesData() {
+    defer amankanAplikasi()
+    fmt.Println("Memulai proses...")
+    panic("Terjadi error kritikal!")
+    fmt.Println("Ini tidak akan pernah dieksekusi")
+}
+
+func main() {
+    prosesData()
+    fmt.Println("Main selesai berjalan aman.")
+}`
+            },
+            {
+                id: "generics",
+                title: "11. Generics",
+                desc: `Generics (dikenalkan sejak Go 1.18) memungkinkan Anda menulis fungsi atau tipe data yang fleksibel tanpa kehilangan type safety. Anda menggunakan type parameters dalam kurung siku <code>[T any]</code> atau constraint tipe data tertentu.`,
+                code: `package main
+
+import "fmt"
+
+// Fungsi generic dengan constraint any (bisa tipe apa saja)
+func CetakSlice[T any](s []T) {
+    for _, v := range s {
+        fmt.Printf("%v ", v)
+    }
+    fmt.Println()
+}
+
+func main() {
+    angka := []int{1, 2, 3}
+    kata := []string{"Go", "Generics", "Keren"}
+    
+    CetakSlice(angka)
+    CetakSlice(kata)
+}`
+            },
+            {
+                id: "select",
+                title: "12. Select & Multi-Channel",
+                desc: `Keyword <code>select</code> digunakan untuk menunggu operasi data pada beberapa channel sekaligus. Struktur ini mirip <code>switch</code> tetapi khusus untuk channel operations.`,
+                code: `package main
+
+import (
+    "fmt"
+    "time"
+)
+
+func main() {
+    ch1 := make(chan string)
+    ch2 := make(chan string)
+
+    go func() {
+        time.Sleep(100 * time.Millisecond)
+        ch1 <- "satu"
+    }()
+    
+    go func() {
+        time.Sleep(200 * time.Millisecond)
+        ch2 <- "dua"
+    }()
+
+    for i := 0; i < 2; i++ {
+        select {
+        case msg1 := <-ch1:
+            fmt.Println("Diterima dari ch1:", msg1)
+        case msg2 := <-ch2:
+            fmt.Println("Diterima dari ch2:", msg2)
+        }
+    }
+}`
+            },
+            {
+                id: "json",
+                title: "13. Parsing JSON",
+                desc: `Go menyediakan package <code>encoding/json</code> bawaan untuk melakukan encoding (Struct ke JSON) menggunakan <code>json.Marshal</code> dan decoding (JSON ke Struct) menggunakan <code>json.Unmarshal</code>. Gunakan metadata tag untuk menyesuaikan nama field JSON.`,
+                code: `package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+type Pengguna struct {
+    Nama  string \`json:"name"\`
+    Email string \`json:"email"\`
+}
+
+func main() {
+    // 1. Marshalling (Struct -> JSON)
+    u := Pengguna{Nama: "Rian", Email: "rian@example.com"}
+    jsonData, _ := json.Marshal(u)
+    fmt.Println(string(jsonData))
+
+    // 2. Unmarshalling (JSON -> Struct)
+    rawJson := "{\"name\":\"Siti\",\"email\":\"siti@example.com\"}"
+    var u2 Pengguna
+    json.Unmarshal([]byte(rawJson), &u2)
+    fmt.Printf("Nama: %s, Email: %s\\n", u2.Nama, u2.Email)
+}`
+            }
+        ];
+
+        let activeLessonId = "hello";
+
+        const lessonList = document.getElementById('lesson-list');
+        const lessonDetail = document.getElementById('lesson-detail');
+        const codeArea = document.getElementById('code-area');
+        const outputArea = document.getElementById('output-area');
+        const btnRun = document.getElementById('btn-run');
+
+        function renderLessons() {
+            lessonList.innerHTML = '';
+            lessons.forEach(l => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-3 rounded transition text-sm ${l.id === activeLessonId ? 'bg-teal-900/50 text-teal-300 font-semibold border-l-4 border-teal-500' : 'hover:bg-gray-700 text-gray-300'}`;
+                btn.innerHTML = l.title;
+                btn.onclick = () => selectLesson(l.id);
+                lessonList.appendChild(btn);
+            });
+        }
+
+        function selectLesson(id) {
+            activeLessonId = id;
+            const lesson = lessons.find(l => l.id === id);
+            if (lesson) {
+                lessonDetail.innerHTML = `
+                    <h3 class="text-xl font-bold text-teal-400 mb-2">${lesson.title}</h3>
+                    <p class="text-gray-300 text-sm leading-relaxed">${lesson.desc}</p>
+                `;
+                codeArea.value = lesson.code;
+                outputArea.textContent = 'Klik "Jalankan" untuk mengeksekusi kode di atas.';
+            }
+            renderLessons();
+        }
+
+        btnRun.onclick = async () => {
+            btnRun.disabled = true;
+            btnRun.textContent = "Menjalankan...";
+            outputArea.textContent = "Compiling and running...";
+            
+            try {
+                const response = await fetch('/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: codeArea.value })
+                });
+                const result = await response.json();
+                if (result.error) {
+                    outputArea.textContent = result.error;
+                    outputArea.className = "flex-1 p-4 bg-black text-red-400 code-editor overflow-auto whitespace-pre-wrap";
+                } else {
+                    outputArea.textContent = result.output;
+                    outputArea.className = "flex-1 p-4 bg-black text-emerald-400 code-editor overflow-auto whitespace-pre-wrap";
+                }
+            } catch (err) {
+                outputArea.textContent = "Network error: " + err.message;
+                outputArea.className = "flex-1 p-4 bg-black text-red-400 code-editor overflow-auto whitespace-pre-wrap";
+            } finally {
+                btnRun.disabled = false;
+                btnRun.textContent = "Jalankan";
+            }
+        };
+
+        // Init
+        selectLesson(activeLessonId);
+    </script>
+</body>
+</html>
